@@ -31,15 +31,16 @@ CORES = axis_rp_adc_v1_0 axis_rp_dac_v1_0 dna_reader_v1_0 axi_sts_register_v1_0 
    axis_constant_v1_0 axis_counter_v1_0 axis_decimator_v1_0 \
    axis_interpolator_v1_0 axis_packetizer_v1_0 axis_zeroer_v1_0 \
    axis_ram_writer_v1_0 axis_gpio_reader_v1_0 axis_oscilloscope_v1_0 \
-   axis_trigger_v1_0 axis_variable_v1_0 
+   axis_trigger_v1_0 axis_variable_v1_0 axis_lago_trigger_v1_0 axis_tlast_gen_v1_0 \
+   pps_gen_v1_0
 
 VIVADO = vivado -nolog -nojournal -mode batch
 HSI = hsi -nolog -nojournal -mode batch
 RM = rm -rf
 
-UBOOT_TAG = xilinx-v2016.2
-LINUX_TAG = xilinx-v2016.2
-DTREE_TAG = xilinx-v2016.2
+UBOOT_TAG = xilinx-v2016.4
+LINUX_TAG = xilinx-v2016.4
+DTREE_TAG = xilinx-v2016.4
 
 UBOOT_DIR = $(TEMP)/u-boot-xlnx-$(UBOOT_TAG)
 LINUX_DIR = $(TEMP)/linux-xlnx-$(LINUX_TAG)

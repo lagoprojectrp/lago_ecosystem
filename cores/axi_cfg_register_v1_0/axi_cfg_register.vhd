@@ -104,18 +104,20 @@ begin
     end generate;
   end generate;
 
-  process(aclk, aresetn)
+  process(aclk)
   begin
+    if rising_edge(aclk) then
     if(aresetn = '0') then
       reset_s <= '1';
       int_bvalid_reg <= '0';
       int_rvalid_reg <= '0';
       int_rdata_reg <= (others => '0');
-    elsif rising_edge(aclk) then
+    else 
       reset_s <= '0';
       int_bvalid_reg <= int_bvalid_next;
       int_rvalid_reg <= int_rvalid_next;
       int_rdata_reg <= int_rdata_next;
+    end if;
     end if;
   end process;
 
