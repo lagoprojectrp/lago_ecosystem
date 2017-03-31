@@ -8,8 +8,8 @@ root_url=http://cdimage.ubuntu.com/ubuntu-base/releases/14.04/release/$root_tar
 
 hostapd_url=https://www.dropbox.com/sh/5fy49wae6xwxa8a/AAAQHa5NkpLYFocaOrrnft-Pa/rtl8192cu/hostapd-armhf?dl=1
 
-passwd=changeme
-timezone=Europe/Brussels
+passwd=escondido
+timezone=America/Argentina/Mendoza
 
 # Create partitions
 
