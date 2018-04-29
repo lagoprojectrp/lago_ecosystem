@@ -73,27 +73,16 @@ architecture rtl of axis_ram_writer is
   signal int_wdata_wire                    : std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
   
   signal tmp_s2                            : std_logic;
-  signal reset_shreg                       : std_logic_vector(9 downto 0) := (others => '1');
-  signal reset_s                           : std_logic := '1';
   signal reset                             : std_logic;
 
 begin
 	
   int_tready_wire <= not int_full_wire;
   int_wlast_wire <= '1' when (int_addr_reg(3 downto 0) = "1111") else '0';
-
   int_rden_wire <= m_axi_wready and int_wvalid_reg;
   tmp_s2 <= int_tready_wire and s_axis_tvalid;
 
-  reset_generator_p: process(aclk)
-  begin
-    if (rising_edge(aclk)) then
-      reset_shreg <= reset_shreg(reset_shreg'left-1 downto 0) & '0';
-      reset_s       <= reset_shreg(reset_shreg'left);
-    end if;   
-  end process;
-
-  reset <= reset_s or not aresetn;
+  reset <= not aresetn;
 
   FIFO36E1_inst: FIFO36E1 
   generic map(
@@ -125,7 +114,7 @@ begin
   process(aclk)
   begin
   if (rising_edge(aclk)) then
-  if (aresetn = '0') then
+  if (reset = '1') then
     int_awvalid_reg <= '0';
     int_wvalid_reg <= '0';
     int_addr_reg <= (others => '0');
@@ -141,15 +130,15 @@ begin
 
   int_awvalid_next <= '1' when ((int_empty_wire = '0') and (int_awvalid_reg = '0') and (int_wvalid_reg = '0')) or 
                       ((m_axi_wready = '1') and (int_wlast_wire = '1') and (int_empty_wire = '0')) else 
-	              '0' when ((m_axi_awready = '1') and (int_awvalid_reg = '1')) else
-	              int_awvalid_reg;
+	                    '0' when ((m_axi_awready = '1') and (int_awvalid_reg = '1')) else
+	                    int_awvalid_reg;
 
   int_wvalid_next <= '1' when ((int_empty_wire = '0') and (int_awvalid_reg = '0') and (int_wvalid_reg = '0')) else 
                      '0' when (m_axi_wready = '1') and (int_wlast_wire = '1') and (int_empty_wire = '1') else
-		      int_wvalid_reg;
+		                 int_wvalid_reg;
 
   int_addr_next <= int_addr_reg + 1 when (int_rden_wire = '1') else
-	           int_addr_reg;
+	                 int_addr_reg;
 
   int_wid_next <= int_wid_reg + 1 when (m_axi_wready = '1') and (int_wlast_wire = '1') else
                   int_wid_reg;
