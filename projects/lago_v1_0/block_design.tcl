@@ -165,21 +165,9 @@ cell xilinx.com:ip:xlslice:1.0 gpsen {
   Din cfg_0/cfg_data
 }
 
-# create fifo data
-cell xilinx.com:ip:axis_data_fifo:1.1 data_fifo_0 {
-  TDATA_NUM_BYTES 4 
-  FIFO_DEPTH 32
-} {
-  S_AXIS adc_0/M_AXIS
-  s_axis_aclk pll_0/clk_out1
-  s_axis_aresetn const_0/dout
-}
-
 # Create axis_clock_converter
-cell xilinx.com:ip:axis_clock_converter:1.1 fifo_0 {
-  SYNCHRONIZATION_STAGES 8
-} {
-  S_AXIS data_fifo_0/M_AXIS
+cell xilinx.com:ip:axis_clock_converter:1.1 fifo_0 {} {
+  S_AXIS adc_0/M_AXIS
   s_axis_aclk pll_0/clk_out1
   s_axis_aresetn const_0/dout
   m_axis_aclk ps_0/FCLK_CLK0
@@ -393,7 +381,7 @@ cell labdpr:user:ramp_gen:1.0 gen_3 {
   led_o xlconcat_0/In5
 }
 
-group_bd_cells Fast_ADC [get_bd_cells data_fifo_0] [get_bd_cells reg_date] [get_bd_cells tlast_gen_0] [get_bd_cells reset_0] [get_bd_cells subtrig_lvl_a] [get_bd_cells subtrig_lvl_b] [get_bd_cells pps_0] [get_bd_cells pll_0] [get_bd_cells gpsen] [get_bd_cells conv_0] [get_bd_cells reset_1] [get_bd_cells trig_lvl_a] [get_bd_cells const_0] [get_bd_cells const_1] [get_bd_cells trig_lvl_b] [get_bd_cells fifo_0] [get_bd_cells reset_2] [get_bd_cells writer_0] [get_bd_cells nsamples] [get_bd_cells trigger_0] [get_bd_cells adc_0] [get_bd_cells axi_intc_0] [get_bd_cells reg_temp] [get_bd_cells reg_pressure] [get_bd_cells reg_time] [get_bd_cells reg_satellite] [get_bd_cells reg_longitude] [get_bd_cells reg_latitude] [get_bd_cells reg_altitude]
+group_bd_cells Fast_ADC [get_bd_cells reg_date] [get_bd_cells tlast_gen_0] [get_bd_cells reset_0] [get_bd_cells subtrig_lvl_a] [get_bd_cells subtrig_lvl_b] [get_bd_cells pps_0] [get_bd_cells pll_0] [get_bd_cells gpsen] [get_bd_cells conv_0] [get_bd_cells reset_1] [get_bd_cells trig_lvl_a] [get_bd_cells const_0] [get_bd_cells const_1] [get_bd_cells trig_lvl_b] [get_bd_cells fifo_0] [get_bd_cells reset_2] [get_bd_cells writer_0] [get_bd_cells nsamples] [get_bd_cells trigger_0] [get_bd_cells adc_0] [get_bd_cells axi_intc_0] [get_bd_cells reg_temp] [get_bd_cells reg_pressure] [get_bd_cells reg_time] [get_bd_cells reg_satellite] [get_bd_cells reg_longitude] [get_bd_cells reg_latitude] [get_bd_cells reg_altitude]
 
 group_bd_cells Analog_Output [get_bd_cells cfg_dac_pwm_2] [get_bd_cells cfg_dac_pwm_3] [get_bd_cells gen_0] [get_bd_cells gen_1] [get_bd_cells gen_2] [get_bd_cells gen_3] [get_bd_cells reset_3] [get_bd_cells cfg_dac_pwm_0] [get_bd_cells cfg_dac_pwm_1] [get_bd_cells xlconcat_1]
 

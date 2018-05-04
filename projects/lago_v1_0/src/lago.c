@@ -293,8 +293,8 @@ int main(int argc, char *argv[])
 												printf("\t(c) 2012-Today, The LAGO Project, http://lagoproject.org\n");
 												printf("\t(c) 2012, LabDPR, http://labdpr.cab.cnea.gov.ar\n");
 												printf("\n\tThe LAGO Project, lago@lagoproject.org\n");
-												printf("\n\tDPR Lab. 2012\n");
-												printf("\tH. Arnaldi, lharnaldi@gmail.com - H. Asorey, asoreyh@gmail.com\n");
+												printf("\n\tDPR Lab. 2018\n");
+												printf("\tH. Arnaldi, lharnaldi@gmail.com\n");
 												printf("\t%s v%dr%d comms soft\n\n",EXP,VERSION,REVISION);
 												printf("Usage: %s <action> <register> <value> [options]\n", progname);
 
@@ -680,20 +680,16 @@ int main(int argc, char *argv[])
 								return 0;
 				}
 
-				//#define CIRCSIZE 32768
-				/*#define CIRCSIZE 65536
-					uint8_t circbuf[CIRCSIZE];
-					uint32_t bufwrite=0;
-					uint32_t bufread=0;
-					int bufsync=0;*/
 				int r[MTD_TRG];
 
 				int read_buffer(int pos)
 				{
 								uint32_t wo;
 								int16_t ch[2];
-								uint32_t i, j;
+								//uint32_t i, j;
+								uint32_t i;
 								int offset;
+								int trig;
 
 								if (fToStdout)
 												fhout=stdout;
@@ -784,33 +780,32 @@ int main(int argc, char *argv[])
 								// print 512 IN1 and IN2 samples if ready, otherwise sleep 1 ms
 								if((limit > 0 && pos > limit) || (limit == 0 && pos < 512*1024)) {
 
-												offset = limit > 0 ? 0 : 512*1024;
+												//printf("# # # # NEW BUFFER %d %d \n", pos, limit);
+												offset = limit > 0 ? 0 : 4096*1024;
 												limit = limit > 0 ? 0 : 512*1024;
 
-												for(i = 0; i < 512 * 1024; ++i) {
-																ch[0] = *((int16_t *)(mem_ptr + offset + 4*i + 0));
-																ch[1] = *((int16_t *)(mem_ptr + offset + 4*i + 2));
+												for(i = 0; i < 4096 * 1024; i+=4) {
+																ch[0] = *((int16_t *)(mem_ptr + offset + i + 0));
+																ch[1] = *((int16_t *)(mem_ptr + offset + i + 2));
 																//printf("%5d %5d\n", ch[0], ch[1]);
-																wo = *((uint32_t *)(mem_ptr + offset + 4*i));
+																wo = *((uint32_t *)(mem_ptr + offset + i));
 																if (wo>>30==0) {
 																				fprintf(fhout,"%5hd %5hd\n", (((ch[0]>>13)<<14) + ((ch[0]>>13)<<15) + ch[0]),(((ch[1]>>13)<<14) + ((ch[1]>>13)<<15) + ch[1]));
-																				/*mtd_iBin++;
-																					if (mtd_iBin == MTD_BLBIN) {
-																					mtd_bl[0] += ch1;
-																					mtd_bl2[0] += ch1 * ch1;
-																					mtd_bl[1] += ch2;
-																					mtd_bl2[1] += ch2 * ch2;
-																					mtd_bl[2] += ch3;
-																					mtd_bl2[2] += ch3 * ch3;
-																					mtd_cbl++;
-																					}*/
+																				mtd_iBin++;
+																				if (mtd_iBin == MTD_BLBIN) {
+																								mtd_bl[0] += ch[0];
+																								mtd_bl2[0] += ch[0] * ch[0];
+																								mtd_bl[1] += ch[1];
+																								mtd_bl2[1] += ch[1] * ch[1];
+																								mtd_cbl++;
+																				}
 																} 
 																else {
-																				if (wo>>30==1) { //get trigger status
+																				if (wo>>30==1) { //get trigger status and counter between PPS
 																								fprintf(fhout,"# t %d %d\n", (wo>>27)&0x7, wo&0x7FFFFFF);
-																								int trig=(wo>>27)&0x7;
-																									r[trig]++;
-																									mtd_iBin=0;
+																								trig=(wo>>27)&0x7;
+																								r[trig]++;
+																								mtd_iBin=0;
 																				} 
 																				else {
 																								if (wo>>30==2) {//get counter status
@@ -874,18 +869,18 @@ int main(int argc, char *argv[])
 																																												fileDate->tm_mday, fileDate->tm_mon+1,fileDate->tm_year+1900,
 																																												(int)fileTime
 																																							 );
-																																				fprintf(stderr,"# %02d:%02d:%02d %02d/%02d/%04d %d - second %d - rates: %d %d %d (%d - %d - %d) [%d]\r", 
-																																												fileDate->tm_hour, fileDate->tm_min, fileDate->tm_sec,
-																																												fileDate->tm_mday, fileDate->tm_mon+1, fileDate->tm_year+1900,
-																																												(int)fileTime,
-																																												mtd_seconds,
-																																												r[1], r[2], r[4], r[3], r[5], r[6], r[7]
-																																							 );
-																																				for (j=0; j<MTD_TRG; j++) {
-																																								mtd_rates[i] += r[i];
-																																								mtd_rates2[i] += r[i] * r[i];
-																																								r[i] = 0;
-																																				}
+																																				/*fprintf(stderr,"# %02d:%02d:%02d %02d/%02d/%04d %d - second %d - rates: %d %d %d (%d - %d - %d) [%d]\r", 
+																																					fileDate->tm_hour, fileDate->tm_min, fileDate->tm_sec,
+																																					fileDate->tm_mday, fileDate->tm_mon+1, fileDate->tm_year+1900,
+																																					(int)fileTime,
+																																					mtd_seconds,
+																																					r[1], r[2], r[4], r[3], r[5], r[6], r[7]
+																																					);*/
+																																				//for (j=0; j<MTD_TRG; j++) {
+																																				//				mtd_rates[i] += r[i];
+																																				//				mtd_rates2[i] += r[i] * r[i];
+																																				//				r[i] = 0;
+																																				//}
 																																				break;
 																																case 0x1C: // Longitude, latitude, defined by other bits
 																																				switch(((wo)>>24) & 0x7) {
@@ -902,7 +897,7 @@ int main(int argc, char *argv[])
 																																												fprintf(fhout,"# x g %.6f %.6f %.2f\n",gps_lat,gps_lon,gps_alt);
 																																												//tmp_gps_lon=((wo & 0xFFFFFF)<<8);
 																																												break;
-																																												/*case 3:
+																																												/*case 3: FIXME: here is the date data
 																																												// Not used here
 																																												//gps_lon=((int)(tmp_gps_lon+(wo & 0xFF)))/3600000.;
 																																												break;
