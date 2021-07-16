@@ -10,7 +10,7 @@ Lago Ecosystem is a build system for quick prototyping and working with the Zynq
 
 #### 1.1. Download and install [`Vitis Core Development Kit 2020.2`](https://www.xilinx.com/products/design-tools/vitis.html).
 
-<!#### 1.2 Run
+<!--#### 1.2 Run
 
 ```bash
 $ sudo apt-get install curl
@@ -18,7 +18,7 @@ $ cd ~/Downloads
 $ curl https://raw.githubusercontent.com/lagoprojectrp/lago_ecosystem/master/scripts/install_vivado.sh | sudo /bin/bash /dev/stdin
 $ sudo ln -s make /usr/bin/gmake # tells Vivado to use make instead of gmake
 ```
->
+-->
 #### 1.3. Install requirements
 
 ```bash
