@@ -103,11 +103,11 @@ int main(int argc, char *argv[])
 	sts_init();    
 	xadc_init();
 	cma_init();
-	printf("dev_size es: %d ...\n",dev_size);
-	printf("Set writer address...\n");
-	val=rd_reg_value(1, CFG_WR_ADDR_OFFSET);
-	printf("dev_size es: %d ...\n",dev_size);
-	wr_reg_value(1, CFG_WR_ADDR_OFFSET, dev_size);
+	//printf("dev_size es: %d ...\n",dev_size);
+	//printf("Set writer address...\n");
+	rd_reg_value(1, CFG_WR_ADDR_OFFSET,0);
+	//printf("dev_size es: %d ...\n",dev_size);
+	wr_reg_value(1, CFG_WR_ADDR_OFFSET, dev_size,0);
 
 	//Check if it is the first time we access the PL
 	//This is for initial configuration
@@ -141,14 +141,14 @@ int main(int argc, char *argv[])
 	signal(SIGINT, signal_handler);
 
 	if(fReadReg) {
-		rd_reg_value(n_dev, reg_off);  // Read single register
+		rd_reg_value(n_dev, reg_off,1);  // Read single register
 	}
 	else if (fWriteReg) {
-		wr_reg_value(n_dev, reg_off, reg_val);  // Write single register
+		wr_reg_value(n_dev, reg_off, reg_val, 1);  // Write single register
 	}
 	else if (fSetCfgReg) {
 		if (fRegValue) set_voltage(reg_off, atoi(charRegValue)); // For HV, OV
-		else wr_reg_value(1,reg_off, atoi(charRegValue));        // For t1, t2, st1, st2  
+		else wr_reg_value(1,reg_off, atoi(charRegValue), 1);        // For t1, t2, st1, st2  
 	}
 	else if (fGetCfgStatus) {
 		rd_cfg_status();        // Get registers status

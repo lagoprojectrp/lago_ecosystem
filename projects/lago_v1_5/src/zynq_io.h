@@ -135,15 +135,15 @@
 #define XADC_RDIV_VAL 1.883236177     //voltage divisor in board (15k+16.983k)/16.983k = 1.88
 #define XADC_BASE_HVDIV 0.00294088    //voltage divisor in HV base board (100k/31.3Meg) = 3.194888179. The value I put here is the measured one.
 
-extern int intc_fd, cfg_fd, sts_fd, xadc_fd, mem_fd, cma_fd;
-extern void *intc_ptr, *cfg_ptr, *sts_ptr, *xadc_ptr, *mem_ptr, *cma_ptr;
+extern int intc_fd, cfg_fd, sts_fd, xadc_fd, mem_fd, hst0_fd, hst1_fd, cma_fd;
+extern void *intc_ptr, *cfg_ptr, *sts_ptr, *xadc_ptr, *mem_ptr, *hst0_ptr, *hst1_ptr, *cma_ptr;
 extern uint32_t dev_size;
 
 void     dev_write(void *dev_base, uint32_t offset, int32_t value);
 uint32_t dev_read(void *dev_base, uint32_t offset);
 //int    dev_init(int n_dev);
-int32_t  rd_reg_value(int n_dev, uint32_t reg_off);
-int32_t  wr_reg_value(int n_dev, uint32_t reg_off, int32_t reg_val);
+int32_t  rd_reg_value(int n_dev, uint32_t reg_off, uint8_t degug);
+int32_t  wr_reg_value(int n_dev, uint32_t reg_off, int32_t reg_val, uint8_t debug);
 int32_t  rd_cfg_status(void);
 int      intc_init(void);
 int      cfg_init(void);

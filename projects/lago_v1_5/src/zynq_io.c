@@ -1,7 +1,7 @@
 #include "zynq_io.h"
 
 int intc_fd, cfg_fd, sts_fd, xadc_fd, mem_fd, hst0_fd, hst1_fd, cma_fd;
-void *intc_ptr, *cfg_ptr, *sts_ptr, *xadc_ptr, *mem_ptr, *hst0_ptr, hst1_ptr, *cma_ptr;
+void *intc_ptr, *cfg_ptr, *sts_ptr, *xadc_ptr, *mem_ptr, *hst0_ptr, *hst1_ptr, *cma_ptr;
 uint32_t dev_size;
 
 void dev_write(void *dev_base, uint32_t offset, int32_t value)
@@ -39,7 +39,7 @@ return -1;
 return 0;
 }*/
 
-int32_t rd_reg_value(int n_dev, uint32_t reg_off)
+int32_t rd_reg_value(int n_dev, uint32_t reg_off, uint8_t debug)
 {
 	int32_t reg_val;
 	switch(n_dev)
@@ -60,13 +60,14 @@ int32_t rd_reg_value(int n_dev, uint32_t reg_off)
 			printf("Invalid option: %d\n", n_dev);
 			return -1;
 	}
-	printf("Complete. Received data 0x%08x\n", reg_val);
+	if(debug)
+		printf("Complete. Received data 0x%08x\n", reg_val);
 	//printf("Complete. Received data %d\n", reg_val);
 
 	return reg_val;
 }
 
-int32_t wr_reg_value(int n_dev, uint32_t reg_off, int32_t reg_val)
+int32_t wr_reg_value(int n_dev, uint32_t reg_off, int32_t reg_val, uint8_t debug)
 {
 	switch(n_dev)
 	{
@@ -86,7 +87,8 @@ int32_t wr_reg_value(int n_dev, uint32_t reg_off, int32_t reg_val)
 			printf("Invalid option: %d\n", n_dev);
 			return -1;
 	}
-	printf("Complete. Data written: 0x%08x\n", reg_val);
+	if(debug)
+		printf("Complete. Data written: 0x%08x\n", reg_val);
 	//printf("Complete. Data written: %d\n", reg_val);
 
 	return 0;
@@ -121,30 +123,30 @@ int32_t rd_cfg_status(void)
 	return 0;
 }
 
-static uint32_t get_memory_size(char *sysfs_path_file)
-{
-	FILE *size_fp;
-	uint32_t size;
-
-	// open the file that describes the memory range size that is based on
-	// the reg property of the node in the device tree
-	size_fp = fopen(sysfs_path_file, "r");
-
-	if (!size_fp) {
-		printf("unable to open the uio size file\n");
-		exit(-1);
-	}
-
-	// get the size which is an ASCII string such as 0xXXXXXXXX and then be
-	// stop using the file
-	if(fscanf(size_fp, "0x%08X", &size) == EOF){
-		printf("unable to get the size of the uio size file\n");
-		exit(-1);
-	}
-	fclose(size_fp);
-
-	return size;
-}
+//static uint32_t get_memory_size(char *sysfs_path_file)
+//{
+//	FILE *size_fp;
+//	uint32_t size;
+//
+//	// open the file that describes the memory range size that is based on
+//	// the reg property of the node in the device tree
+//	size_fp = fopen(sysfs_path_file, "r");
+//
+//	if (!size_fp) {
+//		printf("unable to open the uio size file\n");
+//		exit(-1);
+//	}
+//
+//	// get the size which is an ASCII string such as 0xXXXXXXXX and then be
+//	// stop using the file
+//	if(fscanf(size_fp, "0x%08X", &size) == EOF){
+//		printf("unable to get the size of the uio size file\n");
+//		exit(-1);
+//	}
+//	fclose(size_fp);
+//
+//	return size;
+//}
 
 int intc_init(void)
 {

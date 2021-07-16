@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=-Wall -O3
+FLAGS=-Wall -O3 -li2c
 ARCH=arm
 CROSS_COMPILE=arm-xilinx-linux-gnueabi-
 

@@ -4,6 +4,8 @@
 #include <string.h> 
 #include <stdlib.h> 
 #include <fcntl.h> 
+#include <sys/ioctl.h>
+#include <i2c/smbus.h> 
 #include <linux/i2c-dev.h> 
 #include <math.h> 
 #include<unistd.h>
