@@ -19,7 +19,7 @@ $ curl https://raw.githubusercontent.com/lagoprojectrp/lago_ecosystem/master/scr
 $ sudo ln -s make /usr/bin/gmake # tells Vivado to use make instead of gmake
 ```
 -->
-#### 1.3. Install requirements
+#### 1.2. Install requirements
 
 ```bash
 $ sudo apt-get update
@@ -36,7 +36,7 @@ $ git clone https://github.com/lagoprojectrp/lago_ecosystem
 $ cd lago_ecosystem
 ```
 
-### 2. Install LAGO Linux for Red Pitaya ([Download SD card image](https://mega.nz/#!BxZgmLjY!I8BuaMg53Kzo_eZQKRjOMfJlu95qR2zWT_BbRXjgNVQ))
+### 2. Install LAGO Linux for Red Pitaya ([Download SD card image](https://mega.nz/file/1x500SzQ#I-k3LtOxLmN-VBHQXgzCrJ10x1OFs9E7NEM5Rpq72pM))
 
 ### 3. Build and run the minimal instrument
 
