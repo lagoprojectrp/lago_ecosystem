@@ -3,11 +3,13 @@ set project_name [lindex $argv 0]
 
 set part_name [lindex $argv 1]
 
-file delete -force tmp/$project_name.cache tmp/$project_name.hw tmp/$project_name.srcs tmp/$project_name.runs tmp/$project_name.xpr
+file delete -force tmp/$project_name.cache tmp/$project_name.hw tmp/$project_name.srcs tmp/$project_name.runs tmp/$project_name.sim tmp/$project_name.ip_user_files tmp/$project_name.xpr
 
 create_project -part $part_name $project_name tmp
 
 set_property IP_REPO_PATHS tmp/cores [current_project]
+
+update_ip_catalog
 
 set_property target_language VHDL [current_project]
 
@@ -65,10 +67,19 @@ proc module {module_name module_body {module_ports {}}} {
   }
 }
 
+proc addr {offset range port master} {
+  set object [get_bd_intf_pins $port]
+  set segment [get_bd_addr_segs -of_objects $object]
+  set config [list Master $master Clk Auto]
+  apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config $config $object
+  assign_bd_address -offset $offset -range $range $segment
+}
+
 source projects/$project_name/block_design.tcl
 
 rename cell {}
 rename module {}
+rename addr {}
 
 if {[version -short] >= 2016.3} {
   set_property synth_checkpoint_mode None [get_files $bd_path/system.bd]
@@ -84,7 +95,7 @@ if {[llength $files] > 0} {
   add_files -norecurse $files
 }
 
-set files [glob -nocomplain cfg/*.xdc]
+set files [glob -nocomplain cfg/*.xdc projects/$project_name/*.xdc]
 if {[llength $files] > 0} {
   add_files -norecurse -fileset constrs_1 $files
 }
