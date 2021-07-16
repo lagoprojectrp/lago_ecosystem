@@ -6,11 +6,11 @@ Lago Ecosystem is a build system for quick prototyping and working with the Zynq
 
 ## Quickstart with the [Red Pitaya](http://redpitaya.com)
 
-### 1. Requirements for Ubuntu 16.04
+### 1. Requirements for Ubuntu 20.04 Focal Fossa
 
-#### 1.1. Download [`Vivado HLx 2016.4: All OS Installer Single-File Download`](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/2016-4.html).
+#### 1.1. Download and install [`Vitis Core Development Kit 2020.2`](https://www.xilinx.com/products/design-tools/vitis.html).
 
-#### 1.2 Run
+<!#### 1.2 Run
 
 ```bash
 $ sudo apt-get install curl
@@ -18,7 +18,7 @@ $ cd ~/Downloads
 $ curl https://raw.githubusercontent.com/lagoprojectrp/lago_ecosystem/master/scripts/install_vivado.sh | sudo /bin/bash /dev/stdin
 $ sudo ln -s make /usr/bin/gmake # tells Vivado to use make instead of gmake
 ```
-
+>
 #### 1.3. Install requirements
 
 ```bash
