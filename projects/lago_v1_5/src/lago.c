@@ -353,10 +353,10 @@ void show_usage(char *progname)
 	} else {
 		printf("\n\tThe LAGO ACQUA suite\n");
 		printf("\tData acquisition system for the LAGO BRC electronic\n");
-		printf("\t(c) 2012-Today, The LAGO Project, http://lagoproject.org\n");
+		printf("\t(c) 2012-Today, The LAGO Project, http://lagoproject.net\n");
 		printf("\t(c) 2012, LabDPR, http://labdpr.cab.cnea.gov.ar\n");
 		printf("\n\tThe LAGO Project, lago@lagoproject.org\n");
-		printf("\n\tDPR Lab. 2018\n");
+		printf("\n\tDPR Lab. 2021\n");
 		printf("\tH. Arnaldi, lharnaldi@gmail.com\n");
 		printf("\tX. Bertou, bertou@gmail.com\n");
 		printf("\t%s v%dr%d comms soft\n\n",EXP,VERSION,REVISION);
