@@ -123,48 +123,48 @@ int32_t rd_cfg_status(void)
 	return 0;
 }
 
-//static uint32_t get_memory_size(char *sysfs_path_file)
-//{
-//	FILE *size_fp;
-//	uint32_t size;
-//
-//	// open the file that describes the memory range size that is based on
-//	// the reg property of the node in the device tree
-//	size_fp = fopen(sysfs_path_file, "r");
-//
-//	if (!size_fp) {
-//		printf("unable to open the uio size file\n");
-//		exit(-1);
-//	}
-//
-//	// get the size which is an ASCII string such as 0xXXXXXXXX and then be
-//	// stop using the file
-//	if(fscanf(size_fp, "0x%08X", &size) == EOF){
-//		printf("unable to get the size of the uio size file\n");
-//		exit(-1);
-//	}
-//	fclose(size_fp);
-//
-//	return size;
-//}
+static uint32_t get_memory_size(char *sysfs_path_file)
+{
+	FILE *size_fp;
+	uint32_t size;
+
+	// open the file that describes the memory range size that is based on
+	// the reg property of the node in the device tree
+	size_fp = fopen(sysfs_path_file, "r");
+
+	if (!size_fp) {
+		printf("unable to open the uio size file\n");
+		exit(-1);
+	}
+
+	// get the size which is an ASCII string such as 0xXXXXXXXX and then be
+	// stop using the file
+	if(fscanf(size_fp, "0x%08X", &size) == EOF){
+		printf("unable to get the size of the uio size file\n");
+		exit(-1);
+	}
+	fclose(size_fp);
+
+	return size;
+}
 
 int intc_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio0";
 
 	//printf("Initializing INTC device...\n");
 
-	// open the memory device file to allow access to the device in user space
-	intc_fd = open(mem_name, O_RDWR);
+	// open the UIO device file to allow access to the device in user space
+	intc_fd = open(uiod, O_RDWR);
 	if (intc_fd < 1) {
-		printf("intc_init: Invalid memory device file:%s.\n", mem_name);
+		printf("intc_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	//dev_size = sysconf(_SC_PAGESIZE);
+	dev_size = get_memory_size("/sys/class/uio/uio0/maps/map0/size");
 
 	// mmap the INTC device into user space
-	intc_ptr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, intc_fd, INTC_BASEADDR);
+	intc_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, intc_fd, 0);
 	if (intc_ptr == MAP_FAILED) {
 		printf("intc_init: mmap call failure.\n");
 		return -1;
@@ -175,21 +175,21 @@ int intc_init(void)
 
 int cfg_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio1";
 
 	//printf("Initializing CFG device...\n");
 
-	// open the CFG device file to allow access to the device in user space
-	cfg_fd = open(mem_name, O_RDWR);
+	// open the UIO device file to allow access to the device in user space
+	cfg_fd = open(uiod, O_RDWR);
 	if (cfg_fd < 1) {
-		printf("cfg_init: Invalid memory device file:%s.\n", mem_name);
+		printf("cfg_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	//dev_size = sysconf(_SC_PAGESIZE);
+	dev_size = get_memory_size("/sys/class/uio/uio1/maps/map0/size");
 
-	// mmap the cfg device into user space
-	cfg_ptr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, cfg_fd, CFG_BASEADDR);
+	// mmap the cfgC device into user space
+	cfg_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, cfg_fd, 0);
 	if (cfg_ptr == MAP_FAILED) {
 		printf("cfg_init: mmap call failure.\n");
 		return -1;
@@ -200,21 +200,21 @@ int cfg_init(void)
 
 int sts_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio4";
 
 	//printf("Initializing STS device...\n");
 
 	// open the UIO device file to allow access to the device in user space
-	sts_fd = open(mem_name, O_RDWR);
+	sts_fd = open(uiod, O_RDWR);
 	if (sts_fd < 1) {
-		printf("sts_init: Invalid memory device file:%s.\n", mem_name);
+		printf("sts_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	//dev_size = sysconf(_SC_PAGESIZE);
+	dev_size = get_memory_size("/sys/class/uio/uio4/maps/map0/size");
 
 	// mmap the STS device into user space
-	sts_ptr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, sts_fd, STS_BASEADDR);
+	sts_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, sts_fd, 0);
 	if (sts_ptr == MAP_FAILED) {
 		printf("sts_init: mmap call failure.\n");
 		return -1;
@@ -225,21 +225,21 @@ int sts_init(void)
 
 int xadc_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio5";
 
 	//printf("Initializing XADC device...\n");
 
 	// open the UIO device file to allow access to the device in user space
-	xadc_fd = open(mem_name, O_RDWR);
+	xadc_fd = open(uiod, O_RDWR);
 	if (xadc_fd < 1) {
-		printf("xadc_init: Invalid memory device file:%s.\n", mem_name);
+		printf("xadc_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	//dev_size = sysconf(_SC_PAGESIZE);
+	dev_size = get_memory_size("/sys/class/uio/uio5/maps/map0/size"); 
 
 	// mmap the XADC device into user space
-	xadc_ptr = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, xadc_fd, XADC_BASEADDR);
+	xadc_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, xadc_fd, 0);
 	if (xadc_ptr == MAP_FAILED) {
 		printf("xadc_init: mmap call failure.\n");
 		return -1;

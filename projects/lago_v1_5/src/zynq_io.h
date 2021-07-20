@@ -2,11 +2,11 @@
 #define _ZYNQ_IO_H_
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 
 #define CMA_ALLOC _IOWR('Z', 0, uint32_t)

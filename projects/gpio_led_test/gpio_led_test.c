@@ -90,9 +90,9 @@ int memfd; 						// device memory handle for Linux device to memory mapping, it 
 
 // Linux application needs gpio base address and register offsets, Standalone application gets it from xparameters.h
 #define GPIO_BUTTON_BASE_ADDRESS	0x41240000
-#define GPIO_LED_BASE_ADDRESS     	0x40000000
-#define GPIO_DATA_OFFSET     		0x0000
-#define GPIO_DIRECTION_OFFSET     	0x0004
+#define GPIO_LED_BASE_ADDRESS    	0x40000000
+#define GPIO_DATA_OFFSET     		  0x0000
+#define GPIO_DIRECTION_OFFSET    	0x0004
 
 // access the serial output
 #define print printf
@@ -102,8 +102,8 @@ int memfd; 						// device memory handle for Linux device to memory mapping, it 
 #define LED_DELAY_PROFILE        2
 #define BUTTON_CHANNEL           1
 #define LED_CHANNEL              1
-#define ALL_OUTPUTS 0
-#define ALL_INPUTS  0xffffffff
+#define ALL_OUTPUTS              0
+#define ALL_INPUTS      0xffffffff
 
 
 // function prototypes  (functions defined in this file after the main)
@@ -126,80 +126,77 @@ void    delay_loop(long int delay_count);
 int     buttons_get_state(void);
 void    LEDs_driver(int pattern);
 
-
-
 int   LED_delay_max;                                              // maximum value to delay to for the LED wait loop
-
 
 /*
  *  ***********************************************************
  */
 int main() {
 
-   // local variable
-   int mode = 0;                                                 // used to check that one of the environment variables used
+	// local variable
+	int mode = 0;                                                 // used to check that one of the environment variables used
 
-   // let the user know that we're starting
-   print("---basic_design_zynq Exerciser---\n\r");
+	// let the user know that we're starting
+	print("---basic_design_zynq Exerciser---\n\r");
 
-   //***** initialize the GPIOs *****
-   // For Linux access memory mapped GPIO without kernel driver and initialize.
-   // The function returns a pointer address to the associated GPIO and sets the GPIO direction
-   mapped_led_dev_base = Linux_GPIO_initialize(GPIO_LED_BASE_ADDRESS, ALL_OUTPUTS, TRUE);
-   mapped_button_dev_base = Linux_GPIO_initialize(GPIO_BUTTON_BASE_ADDRESS, ALL_INPUTS, FALSE);
+	//***** initialize the GPIOs *****
+	// For Linux access memory mapped GPIO without kernel driver and initialize.
+	// The function returns a pointer address to the associated GPIO and sets the GPIO direction
+	mapped_led_dev_base = Linux_GPIO_initialize(GPIO_LED_BASE_ADDRESS, ALL_OUTPUTS, TRUE);
+	mapped_button_dev_base = Linux_GPIO_initialize(GPIO_BUTTON_BASE_ADDRESS, ALL_INPUTS, FALSE);
 
 
-   // determine the use of this software - are we exercising the hardware or doing the profiling exercise?
+	// determine the use of this software - are we exercising the hardware or doing the profiling exercise?
 #ifdef hardware_test
-   LED_delay_max = LED_DELAY_NORMAL;
-   print("running the hardware test...\n\r");
-   mode = 1;
+	LED_delay_max = LED_DELAY_NORMAL;
+	print("running the hardware test...\n\r");
+	mode = 1;
 #endif
 
 #ifdef profiler_test
-   LED_delay_max = LED_DELAY_PROFILE;
-   print("running the profiler code...\n\r");
-   mode = 2;
+	LED_delay_max = LED_DELAY_PROFILE;
+	print("running the profiler code...\n\r");
+	mode = 2;
 #endif
 
 #ifdef CSP_test
-   LED_delay_max = LED_DELAY_PROFILE;
-   print("running the CSP analyzer code...\n\r");
-   mode = 3;
+	LED_delay_max = LED_DELAY_PROFILE;
+	print("running the CSP analyzer code...\n\r");
+	mode = 3;
 #endif
 
-   LED_delay_max = LED_DELAY_NORMAL;
-   print("running the Linux app...\n\r");
-   mode = 4;
+	LED_delay_max = LED_DELAY_NORMAL;
+	print("running the Linux app...\n\r");
+	mode = 4;
 
-   // check to see that one or the other mode was selected, otherwise warn the user and abort
-   if (mode != 0) {
-	   hardware_exerciser();                                // read switches, detect changes, increment/decrement counter, display count on LEDs...
-   } else {
-	   print("you must set the symbol \"hardware_test\", \"profiler_test\", \"CSP_test\", or \"LINUX_APP\" in the compiler settings!\n\r");
-   }
+	// check to see that one or the other mode was selected, otherwise warn the user and abort
+	if (mode != 0) {
+		hardware_exerciser();                                // read switches, detect changes, increment/decrement counter, display count on LEDs...
+	} else {
+		print("you must set the symbol \"hardware_test\", \"profiler_test\", \"CSP_test\", or \"LINUX_APP\" in the compiler settings!\n\r");
+	}
 
-   print("---Exiting main---\n\r");							// never reached...
+	print("---Exiting main---\n\r");							// never reached...
 
-   // unmap the memory used for the GPIO device before exiting
-   // Linux only, but will never be reached
-   // It is a good programming practice to always release the memory space the device was accessing
-   // Since the Standalone drivers can always access memory, this sort of functionality is not needed
-   if (munmap(mapped_base, MAP_SIZE) == -1) {
-       printf("Can't unmap memory from user space.\n");
-       exit(0);
-   }
-   printf("Memory Unmapped\n");
-   close(memfd);
+	// unmap the memory used for the GPIO device before exiting
+	// Linux only, but will never be reached
+	// It is a good programming practice to always release the memory space the device was accessing
+	// Since the Standalone drivers can always access memory, this sort of functionality is not needed
+	if (munmap(mapped_base, MAP_SIZE) == -1) {
+		printf("Can't unmap memory from user space.\n");
+		exit(0);
+	}
+	printf("Memory Unmapped\n");
+	close(memfd);
 
-   return 0;
+	return 0;
 }
 
 
 
-   /*
-    * ************** Hardware Exerciser Code *************************
-    */
+/*
+ * ************** Hardware Exerciser Code *************************
+ */
 #define UP    0
 #define LEFT  0
 #define DOWN  1
@@ -217,46 +214,46 @@ int main() {
  */
 
 void hardware_exerciser() {
-   // local variables
-   u32 last_button_state = 0;
-   u32 current_button_state = 0;
-   u32 button_difference = 0;
-   int count_direction = UP;
-   int sample = 0;
-   int keep_running = 1;
-   int profile_iteration_count = 500000;                        // used only in profile mode
+	// local variables
+	u32 last_button_state = 0;
+	u32 current_button_state = 0;
+	u32 button_difference = 0;
+	int count_direction = UP;
+	int sample = 0;
+	int keep_running = 1;
+	int profile_iteration_count = 500000;                        // used only in profile mode
 
-   // deliberate infinite loop
-   while (keep_running) {
-    // read current switch configuration
-    current_button_state = buttons_get_state();
-    button_difference = (current_button_state ^ last_button_state) & current_button_state; // detect a change and that it has been pushed (not released)
-	 if (button_difference != 0) {
+	// deliberate infinite loop
+	while (keep_running) {
+		// read current switch configuration
+		current_button_state = buttons_get_state();
+		button_difference = (current_button_state ^ last_button_state) & current_button_state; // detect a change and that it has been pushed (not released)
+		if (button_difference != 0) {
 
-       // has anything changed based on the buttons?
-	    if      (button_difference & 0x04) { print("Stop counting..."); count_direction = STOP; }
-	    else if (button_difference & 0x02) { print("Counting down..."); count_direction = DOWN; }
-	    else if (button_difference & 0x01) { print("Counting up...");   count_direction = UP;   }
-	 }
-     last_button_state = current_button_state;                    // update the button status to prevent runaway button action
+			// has anything changed based on the buttons?
+			if      (button_difference & 0x04) { print("Stop counting..."); count_direction = STOP; }
+			else if (button_difference & 0x02) { print("Counting down..."); count_direction = DOWN; }
+			else if (button_difference & 0x01) { print("Counting up...");   count_direction = UP;   }
+		}
+		last_button_state = current_button_state;                    // update the button status to prevent runaway button action
 
-   	 // compute the next sample number (period of 256)
-   	 if      (count_direction = UP)   { sample++; sample %= ONE_PERIOD; }
-   	 else if (count_direction = DOWN) { sample--; if (sample < -1) sample = ONE_PERIOD-1; }
-   	 else                              { /* no change */}
+		// compute the next sample number (period of 256)
+		if      (count_direction = UP)   { sample++; sample %= ONE_PERIOD; }
+		else if (count_direction = DOWN) { sample--; if (sample < -1) sample = ONE_PERIOD-1; }
+		else                              { /* no change */}
 
-   	 // do the math and drive the LEDs
-   	 do_sine_sample(sample);
+		// do the math and drive the LEDs
+		do_sine_sample(sample);
 
-   	 // wait loop - caution - delay loops like this are removed when optimization is turned on!
-   	 delay_loop(LED_delay_max);                                      // delay for a slower display
+		// wait loop - caution - delay loops like this are removed when optimization is turned on!
+		delay_loop(LED_delay_max);                                      // delay for a slower display
 
-   	 // if this is the profiler mode, we need to quit after a while
+		// if this is the profiler mode, we need to quit after a while
 #ifdef profiler_test
-     keep_running = profile_iteration_count--;
+		keep_running = profile_iteration_count--;
 #endif
 
-   }
+	}
 }
 
 
@@ -311,14 +308,14 @@ double sine(double angle_in_radians) {
 
 	// determine quadrant and reflect horizontally (if necessary)
 	if (angle_in_radians > 3*PI/2) {                  // in Q4?
-       quadrant = 4;                                  // remember for later
-	   angle_in_radians = 2 * PI - angle_in_radians;  // do horizontal (x) reflection, y reflection done later
+		quadrant = 4;                                  // remember for later
+		angle_in_radians = 2 * PI - angle_in_radians;  // do horizontal (x) reflection, y reflection done later
 	} else if (angle_in_radians > PI) {               // in Q3?
-	   quadrant = 3;                                  // remember for later
-	   angle_in_radians = angle_in_radians - PI;      // no x reflection, y reflection done later
+		quadrant = 3;                                  // remember for later
+		angle_in_radians = angle_in_radians - PI;      // no x reflection, y reflection done later
 	} else if (angle_in_radians > PI/2) {             // in Q2?
-	   quadrant = 2;                                  // remember for later
-       angle_in_radians = PI - angle_in_radians;      // do horizontal (x) reflection
+		quadrant = 2;                                  // remember for later
+		angle_in_radians = PI - angle_in_radians;      // do horizontal (x) reflection
 	}
 
 	// compute powers of angle_in_radians
@@ -331,9 +328,9 @@ double sine(double angle_in_radians) {
 	result = angle_in_radians - X3/factorial(3) + X5/factorial(5) - X7/factorial(7);
 
 	// do vertical reflection for Q3 and Q4
-    if (quadrant > 2) {
-    	result *= -1;                                 // flip the Q1/Q2 result
-    }
+	if (quadrant > 2) {
+		result *= -1;                                 // flip the Q1/Q2 result
+	}
 
 	return result;
 }
@@ -351,22 +348,22 @@ double factorial(int final_term) {
 
 
 /******************************************************************************************************
-* LINUX GPIO INITIALIZATION
-* This function performs two operations:
-* 1) Opens a device to memory window in Linux so a GPIO that exists at a physical address is mapped
-*    to a fixed logical address. This logical address is returned by the function.
-* 2) Initialize the GPIO for either input or output mode.
-*
-* INPUT PARAMETERS:
-* gpio_base_address - physical hardware base address of GPIO, you have to get this from XML file
-* direction - 32 bits indicating direction for each bit; 0 - output; 1 - input
-* first_call - boolean indicating that this is first call to function. The first time and only the first
-*              time should the Linux device memory mapping service be mounted. Call for subsequent
-*              gpio mapping this should be set to FALSE (0).
-*
-* RETURNS:
-* mapped_dev_base - memory pointer to the GPIO that was specified by the gpio_base_address
-*******************************************************************************************************/
+ * LINUX GPIO INITIALIZATION
+ * This function performs two operations:
+ * 1) Opens a device to memory window in Linux so a GPIO that exists at a physical address is mapped
+ *    to a fixed logical address. This logical address is returned by the function.
+ * 2) Initialize the GPIO for either input or output mode.
+ *
+ * INPUT PARAMETERS:
+ * gpio_base_address - physical hardware base address of GPIO, you have to get this from XML file
+ * direction - 32 bits indicating direction for each bit; 0 - output; 1 - input
+ * first_call - boolean indicating that this is first call to function. The first time and only the first
+ *              time should the Linux device memory mapping service be mounted. Call for subsequent
+ *              gpio mapping this should be set to FALSE (0).
+ *
+ * RETURNS:
+ * mapped_dev_base - memory pointer to the GPIO that was specified by the gpio_base_address
+ *******************************************************************************************************/
 void *Linux_GPIO_initialize(int gpio_base_address, int direction, int first_call)
 {
 	void *mapped_dev_base;
@@ -386,21 +383,21 @@ void *Linux_GPIO_initialize(int gpio_base_address, int direction, int first_call
 	// Map one page of memory into user space such that the device is in that page, but it may not
 	// be at the start of the page.
 	mapped_base = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memfd, dev_base & ~MAP_MASK);
-    if (mapped_base == (void *) -1) {
-    	printf("Can't map the memory to user space for LED GPIO.\n");
-    	exit(0);
-    }
-    printf("LED GPIO memory mapped at address %p.\n", mapped_base);
+	if (mapped_base == (void *) -1) {
+		printf("Can't map the memory to user space for LED GPIO.\n");
+		exit(0);
+	}
+	printf("LED GPIO memory mapped at address %p.\n", mapped_base);
 
-    // Get the address of the device in user space which will be an offset from the base
-    // that was mapped as memory is mapped at the start of a page
-    mapped_dev_base = mapped_base + (dev_base & MAP_MASK);
+	// Get the address of the device in user space which will be an offset from the base
+	// that was mapped as memory is mapped at the start of a page
+	mapped_dev_base = mapped_base + (dev_base & MAP_MASK);
 
-    // Slight delay for Linux memory access problem
-    usleep(50);
-    // write to the direction GPIO direction register to set as all inputs or outputs
-    *((volatile unsigned long *) (mapped_dev_base + GPIO_DIRECTION_OFFSET)) = direction;
-    return mapped_dev_base;
+	// Slight delay for Linux memory access problem
+	usleep(50);
+	// write to the direction GPIO direction register to set as all inputs or outputs
+	*((volatile unsigned long *) (mapped_dev_base + GPIO_DIRECTION_OFFSET)) = direction;
+	return mapped_dev_base;
 }
 
 /*
@@ -439,29 +436,29 @@ void driveBarGraph(int value) {
 void doBarGraph(int value, int style) {
 
 	if (style == BAR) {
-  	   switch (value) {
-	      case 0:  LEDs_driver(0x00); break;
-	      case 1:  LEDs_driver(0x01); break;
-          case 2:  LEDs_driver(0x03); break;
-	      case 3:  LEDs_driver(0x07); break;
-	      case 4:  LEDs_driver(0x0f); break;
-	      case 5:  LEDs_driver(0x1f); break;
-	      case 6:  LEDs_driver(0x3f); break;
-	      case 7:  LEDs_driver(0x7f); break;
-	      case 8:  LEDs_driver(0xff); break;
-	      default: LEDs_driver(0x55);                                          // non-contiguous pattern indicates error
-	   }
+		switch (value) {
+			case 0:  LEDs_driver(0x00); break;
+			case 1:  LEDs_driver(0x01); break;
+			case 2:  LEDs_driver(0x03); break;
+			case 3:  LEDs_driver(0x07); break;
+			case 4:  LEDs_driver(0x0f); break;
+			case 5:  LEDs_driver(0x1f); break;
+			case 6:  LEDs_driver(0x3f); break;
+			case 7:  LEDs_driver(0x7f); break;
+			case 8:  LEDs_driver(0xff); break;
+			default: LEDs_driver(0x55);                                          // non-contiguous pattern indicates error
+		}
 	} else if (style == CYLON) {
-	  	switch (value) {
-		   case 0:  LEDs_driver(0x01); break;
-	       case 1:  LEDs_driver(0x02); break;
-		   case 2:  LEDs_driver(0x04); break;
-		   case 3:  LEDs_driver(0x08); break;
-		   case 4:  LEDs_driver(0x10); break;
-		   case 5:  LEDs_driver(0x20); break;
-		   case 6:  LEDs_driver(0x40); break;
-		   case 7:  LEDs_driver(0x80); break;
-		   default: LEDs_driver(0x55);                                         // non-contiguous pattern indicates error
+		switch (value) {
+			case 0:  LEDs_driver(0x01); break;
+			case 1:  LEDs_driver(0x02); break;
+			case 2:  LEDs_driver(0x04); break;
+			case 3:  LEDs_driver(0x08); break;
+			case 4:  LEDs_driver(0x10); break;
+			case 5:  LEDs_driver(0x20); break;
+			case 6:  LEDs_driver(0x40); break;
+			case 7:  LEDs_driver(0x80); break;
+			default: LEDs_driver(0x55);                                         // non-contiguous pattern indicates error
 		}
 	} else if (style == BINARY) {
 		LEDs_driver(value);                                                    // simple binary value to display
@@ -487,8 +484,8 @@ int buttons_get_state()
 {
 	// local variables
 	int current_button_state = 0;
-		// Linux read of gpio, notice that it accesses the data register of the GPIO as a memory location, no device driver needed!
-		current_button_state = *((volatile unsigned long *) (mapped_button_dev_base + GPIO_DATA_OFFSET));
+	// Linux read of gpio, notice that it accesses the data register of the GPIO as a memory location, no device driver needed!
+	current_button_state = *((volatile unsigned long *) (mapped_button_dev_base + GPIO_DATA_OFFSET));
 }
 
 
@@ -501,8 +498,8 @@ int buttons_get_state()
  */
 void LEDs_driver(int led_image)
 {
-		// Linux write to gpio, by writing to a memory address of the gpio data register, no device driver needed!
-		*((volatile unsigned long *) (mapped_led_dev_base + GPIO_DATA_OFFSET)) = led_image;
+	// Linux write to gpio, by writing to a memory address of the gpio data register, no device driver needed!
+	*((volatile unsigned long *) (mapped_led_dev_base + GPIO_DATA_OFFSET)) = led_image;
 }
 
 
@@ -528,35 +525,35 @@ void delay_loop(long int count)
  */
 char *itoa(int value, char *string, int radix)
 {
-  char tmp[33];
-  char *tp = tmp;
-  int i;
-  unsigned v;
-  int sign;
-  char *sp;
+	char tmp[33];
+	char *tp = tmp;
+	int i;
+	unsigned v;
+	int sign;
+	char *sp;
 
-  if (radix > 36 || radix <= 1) { string = "radix out of range 1..36"; return 0; }
+	if (radix > 36 || radix <= 1) { string = "radix out of range 1..36"; return 0; }
 
-  sign = (radix == 10 && value < 0);
-  if (sign) { v = -value; }
-  else      { v = (unsigned)value; }
-  while (v || tp == tmp)  {
-    i = v % radix;
-    v = v / radix;
-    if (i < 10) { *tp++ = i+'0'; }
-    else        { *tp++ = i + 'a' - 10; }
-  }
+	sign = (radix == 10 && value < 0);
+	if (sign) { v = -value; }
+	else      { v = (unsigned)value; }
+	while (v || tp == tmp)  {
+		i = v % radix;
+		v = v / radix;
+		if (i < 10) { *tp++ = i+'0'; }
+		else        { *tp++ = i + 'a' - 10; }
+	}
 
-  if (string == 0) {
-	  string = (char *)malloc((tp-tmp)+sign+1);
-	  // xil_printf("call to malloc() made\n\r");
-  }
-  sp = string;
+	if (string == 0) {
+		string = (char *)malloc((tp-tmp)+sign+1);
+		// xil_printf("call to malloc() made\n\r");
+	}
+	sp = string;
 
-  if (sign) { *sp++ = '-'; }
-  while (tp > tmp) { *sp++ = *--tp; }
-  *sp = 0;
-  return string;
+	if (sign) { *sp++ = '-'; }
+	while (tp > tmp) { *sp++ = *--tp; }
+	*sp = 0;
+	return string;
 }
 
 /*
@@ -568,10 +565,10 @@ char *itoa(int value, char *string, int radix)
  *
  */
 char * strcat ( char * destination, const char * source ){
-   char *d = destination;
-   while (*d) ++d;
-   while ((*d++ = *source++) != '\0') ;
-   return (destination);
+	char *d = destination;
+	while (*d) ++d;
+	while ((*d++ = *source++) != '\0') ;
+	return (destination);
 }
 
 

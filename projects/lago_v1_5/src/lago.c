@@ -230,10 +230,10 @@ int main(int argc, char *argv[])
 	}
 
 	// unmap and close the devices 
-	//munmap(intc_ptr, sysconf(_SC_PAGESIZE));
-	//munmap(cfg_ptr, sysconf(_SC_PAGESIZE));
-	//munmap(sts_ptr, sysconf(_SC_PAGESIZE));
-	//munmap(xadc_ptr, sysconf(_SC_PAGESIZE));
+	munmap(intc_ptr, sysconf(_SC_PAGESIZE));
+	munmap(cfg_ptr, sysconf(_SC_PAGESIZE));
+	munmap(sts_ptr, sysconf(_SC_PAGESIZE));
+	munmap(xadc_ptr, sysconf(_SC_PAGESIZE));
 	//munmap(mem_ptr, sysconf(_SC_PAGESIZE));
 
 	close(intc_fd);
