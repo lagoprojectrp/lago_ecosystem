@@ -14,6 +14,7 @@
 
 #include "zynq_io.h"
 #include "gps_rp.h"
+#include "bmp180.h"
 #include "globaldefs.h"
 
 typedef struct ldata 
@@ -36,11 +37,12 @@ typedef struct ldata
 int  main(int argc, char *argv[]);
 void signal_handler(int sig);
 int  wait_for_interrupt(int fd_int, void *dev_ptr);
+void *thread_isr_not_gps(void *p);
 void *thread_isr(void *p);  
 void show_usage(char *progname);
 void StrcpyS(char *szDst, size_t cchDst, const char *szSrc); 
 int  parse_param(int argc, char *argv[]);  
 int  new_file(void);
-int  read_buffer(int position);
+int  read_buffer(int position, void *bmp);
 
 #endif

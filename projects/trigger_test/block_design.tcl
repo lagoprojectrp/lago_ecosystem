@@ -92,30 +92,6 @@ cell xilinx.com:ip:xlconstant:1.1 const_1 {
   CONST_VAL 503316480
 }
 
-## Create xlconstant for trigger lvl a
-#cell xilinx.com:ip:xlconstant:1.1 trig_lvl_a {
-#  CONST_WIDTH 16
-#  CONST_VAL 500
-#}
-#
-## Create xlconstant for trigger lvl b
-#cell xilinx.com:ip:xlconstant:1.1 trig_lvl_b {
-#  CONST_WIDTH 16
-#  CONST_VAL 8100
-#}
-#
-## Create xlconstant for subtrigger lvl a
-#cell xilinx.com:ip:xlconstant:1.1 subtrig_lvl_a {
-#  CONST_WIDTH 16
-#  CONST_VAL 8100
-#}
-#
-## Create xlconstant for subtrigger lvl b
-#cell xilinx.com:ip:xlconstant:1.1 subtrig_lvl_b {
-#  CONST_WIDTH 16
-#  CONST_VAL 8100
-#}
-#
 # Create xlconstant for gpsen_i
 cell xilinx.com:ip:xlconstant:1.1 pps_gen_en 
 
@@ -141,7 +117,9 @@ cell labdpr:user:pps_gen:1.0 pps_gen_0 {} {
 }
 
 # Create lago trigger
-cell labdpr:user:axis_lago_trigger:1.0 axis_lago_trigger_0 {} {
+cell labdpr:user:axis_lago_trigger:1.0 axis_lago_trigger_0 {
+  DATA_ARRAY_LENGTH 32
+} {
   S_AXIS fifo_0/M_AXIS
   aclk ps_0/FCLK_CLK0
   aresetn slice_1/Dout
@@ -177,7 +155,7 @@ cell xilinx.com:ip:axis_dwidth_converter:1.1 conv_0 {
 
 # Create axis_ram_writer
 cell labdpr:user:axis_ram_writer:1.0 writer_0 {
-  ADDR_WIDTH 22
+  ADDR_WIDTH 20
 } {
   S_AXIS conv_0/M_AXIS
   M_AXI ps_0/S_AXI_HP0
@@ -187,3 +165,22 @@ cell labdpr:user:axis_ram_writer:1.0 writer_0 {
 }
 
 assign_bd_address [get_bd_addr_segs ps_0/S_AXI_HP0/HP0_DDR_LOWOCM]
+
+# Create axi_sts_register
+cell labdpr:user:axi_sts_register:1.0 sts_0 {
+  STS_DATA_WIDTH 32
+  AXI_ADDR_WIDTH 32
+  AXI_DATA_WIDTH 32
+} {
+  sts_data writer_0/sts_data
+}
+
+# Create all required interconnections
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {
+  Master /ps_0/M_AXI_GP0
+  Clk Auto
+} [get_bd_intf_pins sts_0/S_AXI]
+
+set_property RANGE 4K [get_bd_addr_segs ps_0/Data/SEG_sts_0_reg0]
+set_property OFFSET 0x40001000 [get_bd_addr_segs ps_0/Data/SEG_sts_0_reg0]
+
