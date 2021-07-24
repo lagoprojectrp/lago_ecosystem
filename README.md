@@ -44,4 +44,6 @@ $ cd lago_ecosystem
 $ source settings.sh
 $ make NAME=led_blinker
 ```
+### 4. Documentation (in spanish)
+You can read the official documentation in the following link-> ([Official documentation](https://mega.nz/file/go5jGaxI#yAPNhnzwa18UFw0HiC4y9pNHfYLi5F2QwN8MDeZ5Lb0))
 
