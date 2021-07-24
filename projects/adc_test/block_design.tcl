@@ -103,6 +103,13 @@ cell labdpr:user:port_slicer slice_2 {
   din cfg_0/cfg_data
 }
 
+# Create port_slicer
+cell labdpr:user:port_slicer slice_3 {
+  DIN_WIDTH 160 DIN_FROM 63 DIN_TO 32
+} {
+  din cfg_0/cfg_data
+}
+
 # RX
 
 # Create axis_subset_converter
@@ -163,19 +170,14 @@ cell xilinx.com:ip:axis_dwidth_converter conv_0 {
 
 # DMA
 
-# Create xlconstant
-cell xilinx.com:ip:xlconstant const_1 {
-  CONST_WIDTH 32
-  CONST_VAL 503316480
-}
-
 # Create axis_ram_writer
 cell labdpr:user:axis_ram_writer writer_0 {
   ADDR_WIDTH 16
+  AXI_ID_WIDTH 3
 } {
   S_AXIS conv_0/M_AXIS
-  M_AXI ps_0/S_AXI_HP0
-  cfg_data const_1/dout
+  M_AXI ps_0/S_AXI_ACP
+  cfg_data slice_3/dout
   aclk pll_0/clk_out1
   aresetn slice_1/dout
 }
@@ -191,15 +193,15 @@ cell labdpr:user:axis_lfsr lfsr_0 {} {
 for {set i 0} {$i <= 1} {incr i} {
 
   # Create port_slicer
-  cell labdpr:user:port_slicer slice_[expr $i + 3] {
-    DIN_WIDTH 160 DIN_FROM [expr 32 * $i + 63] DIN_TO [expr 32 * $i + 32]
+  cell labdpr:user:port_slicer slice_[expr $i + 4] {
+    DIN_WIDTH 160 DIN_FROM [expr 32 * $i + 95] DIN_TO [expr 32 * $i + 64]
   } {
     din cfg_0/cfg_data
   }
 
   # Create port_slicer
-  cell labdpr:user:port_slicer slice_[expr $i + 5] {
-    DIN_WIDTH 160 DIN_FROM [expr 16 * $i + 111] DIN_TO [expr 16 * $i + 96]
+  cell labdpr:user:port_slicer slice_[expr $i + 6] {
+    DIN_WIDTH 160 DIN_FROM [expr 16 * $i + 143] DIN_TO [expr 16 * $i + 128]
   } {
     din cfg_0/cfg_data
   }
@@ -208,7 +210,7 @@ for {set i 0} {$i <= 1} {incr i} {
   cell labdpr:user:axis_constant phase_$i {
     AXIS_TDATA_WIDTH 32
   } {
-    cfg_data slice_[expr $i + 3]/dout
+    cfg_data slice_[expr $i + 4]/dout
     aclk pll_0/clk_out1
   }
 
@@ -239,7 +241,7 @@ for {set i 0} {$i <= 1} {incr i} {
     P_WIDTH 15
   } {
     A dds_$i/m_axis_data_tdata
-    B slice_[expr $i + 5]/dout
+    B slice_[expr $i + 6]/dout
     CARRYIN lfsr_0/m_axis_tdata
     CLK pll_0/clk_out1
   }
@@ -293,5 +295,5 @@ addr 0x40001000 4K cfg_0/S_AXI /ps_0/M_AXI_GP0
 assign_bd_address [get_bd_addr_segs ps_0/S_AXI_ACP/ACP_DDR_LOWOCM]
 
 group_bd_cells PS7 [get_bd_cells rst_0] [get_bd_cells pll_0] [get_bd_cells const_0] [get_bd_cells ps_0] [get_bd_cells ps_0_axi_periph]
-group_bd_cells ACQ [get_bd_cells rate_0] [get_bd_cells adc_0] [get_bd_cells subset_0] [get_bd_cells slice_0] [get_bd_cells slice_1] [get_bd_cells conv_0] [get_bd_cells slice_2] [get_bd_cells cic_0] [get_bd_cells writer_0] [get_bd_cells const_1]
-group_bd_cells CMPLX_GEN [get_bd_cells phase_1] [get_bd_cells mult_0] [get_bd_cells dds_0] [get_bd_cells dds_1] [get_bd_cells mult_1] [get_bd_cells slice_3] [get_bd_cells dac_0] [get_bd_cells slice_4] [get_bd_cells slice_5] [get_bd_cells concat_0] [get_bd_cells slice_6] [get_bd_cells phase_0] [get_bd_cells lfsr_0]
+group_bd_cells ACQ [get_bd_cells rate_0] [get_bd_cells adc_0] [get_bd_cells subset_0] [get_bd_cells slice_0] [get_bd_cells slice_1] [get_bd_cells conv_0] [get_bd_cells slice_2] [get_bd_cells cic_0] [get_bd_cells writer_0] [get_bd_cells slice_3]
+group_bd_cells CMPLX_GEN [get_bd_cells phase_1] [get_bd_cells mult_0] [get_bd_cells dds_0] [get_bd_cells dds_1] [get_bd_cells mult_1] [get_bd_cells dac_0] [get_bd_cells slice_4] [get_bd_cells slice_5] [get_bd_cells concat_0] [get_bd_cells slice_6] [get_bd_cells phase_0] [get_bd_cells lfsr_0]
