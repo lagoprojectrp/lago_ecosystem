@@ -1,6 +1,6 @@
 /*
 command to compile:
-gcc -O3 adc-test-server.c -o adc-test-server
+gcc -O3 -D_GNU_SOURCE adc-test-server.c -o adc-test-server
 */
 
 #include <stdio.h>
