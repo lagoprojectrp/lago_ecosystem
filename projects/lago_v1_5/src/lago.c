@@ -1,79 +1,14 @@
 #include "lago.h"
 
-//*****************************************************
-// Pressure, temperature and other constants
-//****************************************************
-double  gps_lat,gps_lon,gps_alt;
-
-//Globals
-int interrupted = 0;
-int n_dev;
-uint32_t reg_off;
-int32_t reg_val;
-//double r_val;
-int limit;
-int current;
-loc_t g_data;
-// detector rates
-int r1,r2;
-// timing horrible hack
-int hack=0;
-
-int fReadReg, fGetCfgStatus, fGetPT, fGetGPS, fGetXADC, fInitSystem, fWriteReg, 
-		fSetCfgReg, fToFile, fToStdout, fFile, fCount, fByte, fRegValue, fData, 
-		fFirstTime=1,	fshowversion;
-
-char charAction[MAXCHRLEN], scRegister[MAXCHRLEN], charReg[MAXCHRLEN],
-		 charFile[MAXCHRLEN], charCurrentFile[MAXCHRLEN], charCount[MAXCHRLEN],
-		 scByte[MAXCHRLEN], charRegValue[MAXCHRLEN], charCurrentMetaData[MAXCHRLEN];
-
-//FILE        *fhin = NULL;
-FILE         *fhout = NULL;
-FILE         *fhmtd = NULL;
-struct FLContext  *handle = NULL;
-
-#ifdef FUTURE
-unordered_map<string, string> hConfigs;
-#endif
-
-//****************************************************
-// Time globals for filenames
-//****************************************************
-time_t    fileTime;
-struct tm *fileDate;
-int       falseGPS=0;
-
-//****************************************************
-// Metadata
-//****************************************************
-// Metadata calculations, dataversion v5 need them
-// average rates and deviation per trigger condition
-// average baseline and deviation per channel
-// using long int as max_rate ~ 50 kHz * 3600 s = 1.8x10^7 ~ 2^(20.5)
-// and is even worst for baseline
-#define MTD_TRG   8
-#define MTD_BL    3
-#define MTD_BLBIN 1
-//daq time
-int mtd_seconds=0;
-// trigger rates
-long int mtd_rates[MTD_TRG], mtd_rates2[MTD_TRG];
-//base lines
-long int mtd_bl[MTD_BL], mtd_bl2[MTD_BL];
-int mtd_iBin=0;
-long int mtd_cbl=0;
-// deat time defined as the number of missing pulses over the total number
-// of triggers. We can determine missing pulses as the sum of the differences 
-// between consecutive pulses
-long int mtd_dp = 0, mtd_cdp = 0, mtd_pulse_cnt = 0, mtd_pulse_pnt = 0;
-// and finally, a vector of strings to handle configs file. I'm also including a
-// hash table
-// for future implementations. For now, we just dump the lago-configs file
-//vector <string> configs_lines;
-int position;
 int main(int argc, char *argv[])
 {
-	int rc;
+	int rc,i;
+	//histogramers related
+	const int COPY_BYTES = 4*16*1024;
+	const int num_word = COPY_BYTES / 4;
+	int32_t buf_o0[num_word], buf_i0[num_word];
+	int32_t buf_o1[num_word], buf_i1[num_word];
+
 	//PT device
 	float t, p, alt, volt;
 	char *i2c_device = "/dev/i2c-0";
@@ -83,8 +18,6 @@ int main(int argc, char *argv[])
 
 	bmp180_eprom_t eprom;
 	bmp180_dump_eprom(bmp, &eprom);
-
-
 	bmp180_set_oss(bmp, 1);
 	//end PT device
 
@@ -99,14 +32,15 @@ int main(int argc, char *argv[])
 
 	//initialize devices. TODO: add error checking 
 	intc_init();    
+	hst0_init();
+	hst1_init();
 	cfg_init();    
 	sts_init();    
 	xadc_init();
 	cma_init();
-	//printf("dev_size es: %d ...\n",dev_size);
-	//printf("Set writer address...\n");
+
+	//Config memory offset
 	rd_reg_value(1, CFG_WR_ADDR_OFFSET,0);
-	//printf("dev_size es: %d ...\n",dev_size);
 	wr_reg_value(1, CFG_WR_ADDR_OFFSET, dev_size,0);
 
 	//Check if it is the first time we access the PL
@@ -194,6 +128,56 @@ int main(int argc, char *argv[])
 		printf("Base temperature CH2: %.1f ºC\n",get_temp_AD592(XADC_AI1_OFFSET));
 
 	}
+	else if (fGetHst) {
+
+		histo_limit = histo_nsamples-2;
+
+		/* enter reset mode */
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val & ~0x20,0);
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val & ~0x40,0);
+		usleep(100);
+		// set number  of samples in histogramer
+		reg_val = rd_reg_value(1, CFG_HST0_OFFSET,0);
+		wr_reg_value(1,CFG_HST0_OFFSET, reg_val | histo_limit+1,0);
+		reg_val = rd_reg_value(1, CFG_HST1_OFFSET,0);
+		wr_reg_value(1,CFG_HST1_OFFSET, reg_val | histo_limit+1,0);
+		/* enter normal operating mode */
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val | 0x20,0);
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val | 0x40,0);
+
+		while(histo_position < histo_limit)
+		{
+			/* read writer position */
+			histo_position = rd_reg_value(2, STS_HST0_OFFSET,0);
+			//printf("POS: %5d\n", hist_position);
+
+			/* print 16384 samples if ready, otherwise sleep 1 us */
+			if((histo_position >= histo_limit))
+			{
+				memcpy(buf_i0,hst0_ptr,COPY_BYTES); //copy bytes from BRAM
+				memcpy(buf_i1,hst1_ptr,COPY_BYTES); //copy bytes from BRAM
+				for(i = 0; i < num_word; ++i)
+				{
+					buf_o0[i] = buf_i0[i];
+					buf_o1[i] = buf_i1[i];
+					printf("%d %d\n",(int16_t *)buf_o0[i],(int16_t *)buf_o1[i]);
+				}
+			}
+			else
+			{
+				usleep(100);
+			}
+		}
+		/* enter reset mode */
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val & ~0x20,0);
+		reg_val = rd_reg_value(1, CFG_RESET_GRAL_OFFSET,0);
+		wr_reg_value(1,CFG_RESET_GRAL_OFFSET, reg_val & ~0x40,0);
+	}
 	else if (fToFile || fToStdout) {
 
 		limit = 1024*1024*8; // whole memory
@@ -212,7 +196,7 @@ int main(int argc, char *argv[])
 		while(!interrupted){
 			// alarm(2);   // setting 1 sec timeout
 			// read writer position 
-			//position = dev_read(sts_ptr, STS_STATUS_OFFSET); 
+			//position = dev_read(sts_ptr, STS_WRITER_OFFSET); 
 			wait_for_interrupt(intc_fd, intc_ptr);
 			read_buffer(position, bmp);
 			// alarm(0);   // cancelling 1 sec timeout
@@ -234,12 +218,16 @@ int main(int argc, char *argv[])
 	munmap(cfg_ptr, sysconf(_SC_PAGESIZE));
 	munmap(sts_ptr, sysconf(_SC_PAGESIZE));
 	munmap(xadc_ptr, sysconf(_SC_PAGESIZE));
+	munmap(hst0_ptr, sysconf(_SC_PAGESIZE));
+	munmap(hst1_ptr, sysconf(_SC_PAGESIZE));
 	//munmap(mem_ptr, sysconf(_SC_PAGESIZE));
 
 	close(intc_fd);
 	close(cfg_fd);
 	close(sts_fd);
 	close(xadc_fd);
+	close(hst0_fd);
+	close(hst1_fd);
 
 	return 0;
 
@@ -279,7 +267,7 @@ int wait_for_interrupt(int fd_int, void *dev_ptr)
 			if ((value & 0x00000001) != 0) {
 				dev_write(dev_ptr, XIL_AXI_INTC_IAR_OFFSET, 1);
 				// read writer position 
-				position = dev_read(sts_ptr, STS_STATUS_OFFSET);
+				position = dev_read(sts_ptr, STS_WRITER_OFFSET);
 
 			}
 		} else {
@@ -373,6 +361,7 @@ void show_usage(char *progname)
 		printf("\t-t\t\t\t\tGet Pressure and Temperature data\n");
 		printf("\t-i\t\t\t\tInitialise registers to default values\n");
 		printf("\t-x\t\t\t\tRead the voltage in the XADC channels\n");
+		printf("\t-m\t\t\t\tGet amplitude histograms from both channels\n");
 		printf("\t-v\t\t\t\tShow DAQ version\n");
 
 		printf("\n\tRegisters:\n");
@@ -386,6 +375,7 @@ void show_usage(char *progname)
 
 		printf("\n\tOptions:\n");
 		printf("\t-f <filename>\t\t\tSpecify file name\n");
+		printf("\t-m <nsamples>\t\t\tSpecify number of samples in histograms\n");
 		//printf("\t-c <# bytes>\t\t\tNumber of bytes to read/write\n");
 		//printf("\t-b <byte>\t\t\tValue to load into register\n");
 
@@ -432,6 +422,7 @@ int parse_param(int argc, char *argv[])
 	fData      = 0;
 	fRegValue  = 0;
 	fGetXADC   = 0;
+	fGetHst    = 0;
 
 	// Ensure sufficient paramaters. Need at least program name and action
 	// flag
@@ -483,6 +474,9 @@ int parse_param(int argc, char *argv[])
 		fGetXADC = 1;
 		return 1;
 	} 
+	else if( strcmp(charAction, "-m") == 0) {
+		fGetHst = 1;
+	} 
 	else { // unrecognized action
 		return 0;
 	}
@@ -510,6 +504,24 @@ int parse_param(int argc, char *argv[])
 		//FIXME: see if this can be done better
 		if (fWriteReg) reg_val = strtoul(argv[4],NULL,16);
 		return 1;
+	}
+
+	else if(fGetHst) {
+		if(argv[2] != NULL) {
+			StrcpyS(charRegValue, 16, argv[2]);
+			//Tjis maximum is not restrictive. It is just something reasonable
+			if (atoi(charRegValue)>10000000 | atoi(charRegValue)<=0) {
+				printf ("Error: maximum value for NSAMPLES is 10000000. It should be a positive number\n");
+				exit(1);
+			}
+			histo_nsamples = atoi(charRegValue);
+			return 1;
+		} 
+		else {
+			printf("histo_nsamples es: %d\n",histo_nsamples);
+			printf("Error: No NSAMPLES provided\n");
+			return 0;
+		}
 	}
 
 	else if(fSetCfgReg) {
@@ -997,3 +1009,64 @@ int read_buffer(int pos, void *bmp)
 	return 1;
 }
 
+//int histo_2ch(int nsamples)
+//{
+//	int fd, i;
+//	int position=0, offset;
+//	int32_t value[2];
+//	const int COPY_BYTES = 4*16*1024;
+//	const int num_word = COPY_BYTES / 4;
+//	int32_t buf_o0[num_word], buf_i0[num_word];
+//	int32_t buf_o1[num_word], buf_i1[num_word];
+//
+//
+//	limit = nsamples-2;
+//
+//	/* enter reset mode */
+//	*((uint32_t *)(cfg + 0)) &= ~2;
+//	*((uint32_t *)(cfg + 0)) &= ~4;
+//	usleep(100);
+//	//*((uint32_t *)(cfg + 0)) &= ~1;
+//	// set counter number
+//	//*((uint32_t *)(cfg + 4)) = 4096-1;
+//	// set number  of samples in histogramer
+//	*((uint32_t *)(cfg + 8)) = limit+1;
+//	*((uint32_t *)(cfg + 12)) = limit+1;
+//	*((uint32_t *)(cfg + 16)) = 10;
+//	/* enter normal operating mode */
+//	*((uint32_t *)(cfg + 0)) |= 2;
+//	*((uint32_t *)(cfg + 0)) |= 4;
+//
+//	while(!interrupted && position < limit)
+//	{
+//		/* read writer position */
+//		position = *((uint32_t *)(sts + 0));
+//		//printf("POS: %5d\n", position);
+//
+//		/* print 16384 samples if ready, otherwise sleep 1 us */
+//		if((position >= limit))
+//		{
+//			memcpy(buf_i0,ram0,COPY_BYTES); //copy bytes from BRAM
+//			memcpy(buf_i1,ram1,COPY_BYTES); //copy bytes from BRAM
+//			for(i = 0; i < num_word; ++i)
+//			{
+//				buf_o0[i] = buf_i0[i];
+//				buf_o1[i] = buf_i1[i];
+//				printf("%d %d\n",(int16_t *)buf_o0[i],(int16_t *)buf_o1[i]);
+//				//wo = (uint32_t *)(buf_o[i]);
+//				//printf("%5d\n", wo);
+//			}
+//		}
+//		else
+//		{
+//			usleep(100);
+//		}
+//	}
+//
+//	munmap(cfg, sysconf(_SC_PAGESIZE));
+//	munmap(sts, sysconf(_SC_PAGESIZE));
+//	munmap(ram0, sysconf(_SC_PAGESIZE));
+//	munmap(ram1, sysconf(_SC_PAGESIZE));
+//
+//	return 0;
+//}

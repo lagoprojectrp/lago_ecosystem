@@ -112,7 +112,8 @@ int32_t rd_cfg_status(void)
 	}else{
 		printf("#Using GPS data\n");
 	}
-	if (((dev_read(cfg_ptr, CFG_RESET_GRAL_OFFSET)>>5) & 0x1) == 0) //Slave
+	// 1 is written into CFG_GRAL_REG to indicate MASTER or SLAVE working mode
+	if (((dev_read(cfg_ptr, CFG_RESET_GRAL_OFFSET)>>11) & 0x1) == 0) //Slave 
 	{
 		printf("#Working mode is SLAVE\n");
 	}else{
@@ -275,21 +276,23 @@ int mem_init(void)
 
 int hst0_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio2";
 
-	//printf("Initializing mem device...\n");
+	//printf("Initializing HST0 device...\n");
 
 	// open the UIO device file to allow access to the device in user space
-	hst0_fd = open(mem_name, O_RDWR);
+	hst0_fd = open(uiod, O_RDWR);
 	if (hst0_fd < 1) {
-		printf("hst0_init: Invalid device file:%s.\n", mem_name);
+		printf("hst0_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	// mmap the mem device into user space 
-	hst0_ptr = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, hst0_fd, HST0_BASEADDR);
+	dev_size = get_memory_size("/sys/class/uio/uio2/maps/map0/size");
+
+	// mmap the STS device into user space
+	hst0_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, hst0_fd, 0);
 	if (hst0_ptr == MAP_FAILED) {
-		printf("mem_init: mmap call failure.\n");
+		printf("sts_init: mmap call failure.\n");
 		return -1;
 	}
 
@@ -298,21 +301,23 @@ int hst0_init(void)
 
 int hst1_init(void)
 {
-	char *mem_name = "/dev/mem";
+	char *uiod = "/dev/uio3";
 
-	//printf("Initializing mem device...\n");
+	//printf("Initializing HST1 device...\n");
 
 	// open the UIO device file to allow access to the device in user space
-	hst1_fd = open(mem_name, O_RDWR);
+	hst1_fd = open(uiod, O_RDWR);
 	if (hst1_fd < 1) {
-		printf("hst1_init: Invalid device file:%s.\n", mem_name);
+		printf("hst1_init: Invalid UIO device file:%s.\n", uiod);
 		return -1;
 	}
 
-	// mmap the mem device into user space 
-	hst1_ptr = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, hst1_fd, HST1_BASEADDR);
+	dev_size = get_memory_size("/sys/class/uio/uio3/maps/map0/size");
+
+	// mmap the STS device into user space
+	hst1_ptr = mmap(NULL, dev_size, PROT_READ|PROT_WRITE, MAP_SHARED, hst1_fd, 0);
 	if (hst1_ptr == MAP_FAILED) {
-		printf("mem_init: mmap call failure.\n");
+		printf("sts_init: mmap call failure.\n");
 		return -1;
 	}
 
@@ -472,7 +477,7 @@ int init_system(void)
 	dev_write(cfg_ptr,CFG_RESET_GRAL_OFFSET, reg_val | 8);
 	// enter in MASTER mode (default)
 	reg_val = dev_read(cfg_ptr, CFG_RESET_GRAL_OFFSET);
-	dev_write(cfg_ptr,CFG_RESET_GRAL_OFFSET, reg_val | 0x20);
+	dev_write(cfg_ptr,CFG_RESET_GRAL_OFFSET, reg_val | 0x800);
 
 	return 0;
 }

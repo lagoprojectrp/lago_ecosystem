@@ -43,6 +43,10 @@
 #define XIL_AXI_INTC_MER_ME_MASK 0x00000001
 #define XIL_AXI_INTC_MER_HIE_MASK 0x00000002
 
+//STS
+#define STS_WRITER_OFFSET        0x0
+#define STS_HST0_OFFSET          0x4
+#define STS_HST1_OFFSET          0x8
 //CFG
 #define CFG_RESET_GRAL_OFFSET    0x0
 #define CFG_NSAMPLES_OFFSET      0x4
@@ -81,9 +85,6 @@
 #define RST_WRITER_MASK       0x00000004
 #define RST_AO_MASK           0x00000008
 #define FGPS_EN_MASK          0x00000010
-
-//STS
-#define STS_STATUS_OFFSET     0x0
 
 //XADC
 //See page 17 of PG091
@@ -150,6 +151,8 @@ int      cfg_init(void);
 int      sts_init(void);
 int      xadc_init(void);
 int      mem_init(void);
+int      hst0_init(void);
+int      hst1_init(void);
 int      cma_init(void);
 float    get_voltage(uint32_t offset);
 void     set_voltage(uint32_t offset, int32_t value);
