@@ -29,7 +29,7 @@ cell labdpr:user:axi_cfg_register cfg_0 {
   AXI_DATA_WIDTH 32
 }
 
-addr 0x40000000 4K cfg_0/S_AXI /ps_0/M_AXI_GP0
+addr 0x40001000 4K cfg_0/S_AXI /ps_0/M_AXI_GP0
 
 # Create port_slicer
 cell labdpr:user:port_slicer slice_1 {
