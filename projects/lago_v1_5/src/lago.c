@@ -196,8 +196,8 @@ int main(int argc, char *argv[])
 	}
 	else if (fToFile || fToStdout) {
 
-		limit = 1024*1024*8; // whole memory
-		current = -4; // new readout system, hack due to using +4 for readout
+		limit = 1024*1024; // whole memory
+		current = -2; // new readout system, hack due to using +4 for readout
 		// enter normal mode for tlast_gen
 		reg_val = dev_read(cfg_ptr, CFG_RESET_GRAL_OFFSET);
 		dev_write(cfg_ptr,CFG_RESET_GRAL_OFFSET, reg_val | 2);
@@ -825,7 +825,7 @@ int read_buffer(int pos, void *bmp)
 
 	// pos is the number of 8 bytes word written. I need the memory
 	// location... Therefore, pos=pos*8
-	pos=pos*8;
+	//pos=pos*4;
 
 	//printf("%d %d %d\n",current,pos,limit);
 	//fprintf(fhout,"# XB %d %d %d\n", current,pos,limit);
@@ -833,25 +833,26 @@ int read_buffer(int pos, void *bmp)
 	// compare current writing location (pos) with previous (limit)
 	// if current<pos, then read from current to pos and adjust current
 	// if current>pos, then read from current to end of buffer and set current to 0 at the end
-	if (current==limit-4) current=-4; // hack, because I do +4 next to read from next position
-	if (current<pos+4) {
-		readinit=current+4;
+	if (current==limit-2) current=-2; // hack, because I do +4 next to read from next position
+	if (current<pos+2) {
+		readinit=current+2;
 		readend=pos;
 	} else if (current>pos) {
-		readinit=current+4;
+		readinit=current+2;
 		readend=limit; // note: don't read after limit
 	}
 	if(current!=pos) {
 
-		//printf("# # # # NEW BUFFER %d %d \n", pos, limit);
+		//printf("# # # # NEW BUFFER %d %d %d %d %d \n", readinit, readend, current, pos, limit);
 		//offset = limit > 0 ? 0 : 4096*1024;
 		//limit = limit > 0 ? 0 : 512*1024;
 
-		for(i = readinit; i < readend; i+=4) {
-			ch[0] = *((int16_t *)(cma_ptr + i + 0));
-			ch[1] = *((int16_t *)(cma_ptr + i + 2));
+		//for(i = readinit; i < readend; i+=4) {
+		for(i = readinit; i < readend; i++) {
+			ch[0] = *((cma_ptr + 2*i + 0));
+			ch[1] = *((cma_ptr + 2*i + 1));
 			//printf("%5d %5d\n", ch[0], ch[1]);
-			wo = *((uint32_t *)(cma_ptr + i));
+			wo = *((uint32_t *)(cma_ptr + 2*i));
 			if (wo>>30==0) {
 				fprintf(fhout,"%5hd %5hd\n", (((ch[0]>>13)<<14) + ((ch[0]>>13)<<15) + ch[0]),(((ch[1]>>13)<<14) + ((ch[1]>>13)<<15) + ch[1]));
 				mtd_iBin++;
