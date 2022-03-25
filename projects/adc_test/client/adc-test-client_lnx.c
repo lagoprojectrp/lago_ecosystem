@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	//char buffer[256];
 	int32_t buffer[256*4096];
 	//int32_t bufferIn[256];
-  float bufferOut[256*4096];
+	float bufferOut[256*4096];
 
 	if (argc < 3) {
 		fprintf(stderr,"usage %s hostname port\n", argv[0]);
