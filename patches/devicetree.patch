@@ -1,17 +1,76 @@
+diff -rupN pl.dtsi.old pl.dtsi
+--- pl.dtsi.old
++++ pl.dtsi
+@@ -15,7 +15,7 @@
+ 			#interrupt-cells = <2>;
+ 			clock-names = "s_axi_aclk";
+ 			clocks = <&misc_clk_0>;
+-			compatible = "xlnx,axi-intc-4.1", "xlnx,xps-intc-1.00.a";
++      compatible = "generic-uio";
+ 			interrupt-controller ;
+ 			interrupt-names = "irq";
+ 			interrupt-parent = <&intc>;
+@@ -32,19 +32,19 @@
+ 		cfg_0: axi_cfg_register@40001000 {
+ 			clock-names = "aclk";
+ 			clocks = <&misc_clk_0>;
+-			compatible = "xlnx,axi-cfg-register-1.0";
++      compatible = "generic-uio";
+ 			reg = <0x40001000 0x1000>;
+ 		};
+ 		sts_0: axi_sts_register@40002000 {
+ 			clock-names = "aclk";
+ 			clocks = <&misc_clk_0>;
+-			compatible = "xlnx,axi-sts-register-1.0";
++      compatible = "generic-uio";
+ 			reg = <0x40002000 0x1000>;
+ 		};
+ 		xadc_wiz_0: xadc_wiz@40003000 {
+ 			clock-names = "s_axi_aclk";
+ 			clocks = <&misc_clk_0>;
+-			compatible = "xlnx,xadc-wiz-3.3", "xlnx,axi-xadc-1.00.a";
++      compatible = "generic-uio";
+ 			reg = <0x40003000 0x1000>;
+ 			xlnx,alarm-limit-r0 = <0xb5ed>;
+ 			xlnx,alarm-limit-r1 = <0x57e4>;
+@@ -126,5 +126,17 @@
+ 			xlnx,vaux8 = <0x1>;
+ 			xlnx,vaux9 = <0x1>;
+ 		};
+-	};
++		hst0_reader_0: axi_bram_reader@40010000 {
++			clock-names = "aclk";
++			clocks = <&misc_clk_0>;
++      compatible = "generic-uio";
++			reg = <0x40010000 0x10000>;
++		};
++		hst1_reader_1: axi_bram_reader@40020000 {
++			clock-names = "aclk";
++			clocks = <&misc_clk_0>;
++      compatible = "generic-uio";
++			reg = <0x40020000 0x10000>;
++		};
++  };
+ };
 diff -rupN pcw.dtsi.old pcw.dtsi
 --- pcw.dtsi.old
 +++ pcw.dtsi
-@@ -26,6 +26,14 @@
+@@ -26,6 +26,19 @@
  	clock-frequency = <400000>;
  	status = "okay";
  };
 +&i2c0 {
-+	eeprom@50 {
++	eep@50 {
 +		compatible = "24c64";
 + 		size = <8192>;
 + 		pagesize = <32>;
 +		reg = <0x50>;
 +	};
++  bmp180@77{
++    compatible = "bosch,bmp280";
++    reg = <0x77>;
++    status = "okay";
++  };
 +};
  &intc {
  	num_cpus = <2>;
@@ -27,13 +86,13 @@ diff -rupN pcw.dtsi.old pcw.dtsi
 +	};
  };
  &uart0 {
- 	cts-override ;
-@@ -59,11 +70,33 @@
+ 	device_type = "serial";
+@@ -57,11 +68,33 @@
  	status = "okay";
  };
  &usb0 {
--	phy_type = "ulpi";
 +	dr_mode = "host";
+-	phy_type = "ulpi";
 +	usb-phy = <&usb_phy0>;
  	status = "okay";
 -	usb-reset = <&gpio0 48 0>;

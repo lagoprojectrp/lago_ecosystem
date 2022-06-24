@@ -54,6 +54,10 @@
 		compatible = "24c64";
 		reg = <0x50>;
 	};
+   bmp180@77{
+     compatible = "bosch,bmp280";
+     reg = <0x77>;
+     };
 };
 
 &sdhci0 {

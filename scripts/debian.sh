@@ -4,7 +4,7 @@ boot_dir=`mktemp -d /tmp/BOOT.XXXXXXXXXX`
 root_dir=`mktemp -d /tmp/ROOT.XXXXXXXXXX`
 
 linux_dir=tmp/linux-5.10
-linux_ver=5.10.46-xilinx
+linux_ver=5.10.107-xilinx
 
 # Choose mirror automatically, depending the geographic and network location
 mirror=http://deb.debian.org/debian
@@ -13,7 +13,7 @@ distro=buster
 arch=armhf
 
 passwd=escondido
-timezone=Europe/Brussels
+timezone=America/Argentina/Mendoza
 
 # Create partitions
 
