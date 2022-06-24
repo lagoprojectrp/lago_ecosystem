@@ -9,7 +9,7 @@
 		#size-cells = <1>;
 		compatible = "simple-bus";
 		ranges ;
-		PS_axi_intc_0: interrupt-controller@40000000 {
+		axi_intc_0: interrupt-controller@40000000 {
 			#interrupt-cells = <2>;
 			clock-names = "s_axi_aclk";
 			clocks = <&misc_clk_0>;
@@ -32,18 +32,6 @@
 			clocks = <&misc_clk_0>;
       compatible = "generic-uio";
 			reg = <0x40001000 0x1000>;
-		};
-		hst0_reader_0: axi_bram_reader@40010000 {
-			clock-names = "aclk";
-			clocks = <&misc_clk_0>;
-      compatible = "generic-uio";
-			reg = <0x40010000 0x10000>;
-		};
-		hst1_reader_1: axi_bram_reader@40020000 {
-			clock-names = "aclk";
-			clocks = <&misc_clk_0>;
-      compatible = "generic-uio";
-			reg = <0x40020000 0x10000>;
 		};
 		sts_0: axi_sts_register@40002000 {
 			clock-names = "aclk";
@@ -135,6 +123,18 @@
 			xlnx,vaux7 = <0x0>;
 			xlnx,vaux8 = <0x1>;
 			xlnx,vaux9 = <0x1>;
+		};
+		hst0_reader_0: axi_bram_reader@40010000 {
+			clock-names = "aclk";
+			clocks = <&misc_clk_0>;
+      compatible = "generic-uio";
+			reg = <0x40010000 0x10000>;
+		};
+		hst1_reader_1: axi_bram_reader@40020000 {
+			clock-names = "aclk";
+			clocks = <&misc_clk_0>;
+      compatible = "generic-uio";
+			reg = <0x40020000 0x10000>;
 		};
   };
 };
